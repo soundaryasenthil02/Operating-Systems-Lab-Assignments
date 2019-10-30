@@ -8,15 +8,15 @@ int poid[100000];
 int curr;
 int qid;
 void ctrlc();
-typedef struct mymsgbuf {
-            long    mtype;          /* Message type */
+typedef struct msgbuf {
+            long    mtype;          
             char command[1000];
             char msg[6000];
             int pid;
             int terminal;
 }mymsgbuf;
 
-int get_queue_ds( int qid, struct msqid_ds *qbuf )
+int get_queue( int qid, struct msqid_ds *qbuf )
 {
         if( msgctl( qid, IPC_STAT, qbuf) == -1)
         {
@@ -29,11 +29,8 @@ int get_queue_ds( int qid, struct msqid_ds *qbuf )
 int change_queue_size( int qid)
 {
         struct msqid_ds tmpbuf;
-
-        /* Retrieve a current copy of the internal data structure */
         get_queue_ds( qid, &tmpbuf);
         tmpbuf.msg_qbytes=1000000;
-        /* Update the internal data structure */
         if( msgctl( qid, IPC_SET, &tmpbuf) == -1)
         {
                 return(-1);
@@ -44,8 +41,6 @@ int change_queue_size( int qid)
 int send_message( int qid, struct mymsgbuf *qbuf )
 {
         int     result, length;
-
-        /* The length is essentially the size of the structure minus sizeof(mtype) */
         length = sizeof(struct mymsgbuf) - sizeof(long);       
 
         if((result = msgsnd( qid, qbuf, length, 0)) == -1)
@@ -58,8 +53,6 @@ int send_message( int qid, struct mymsgbuf *qbuf )
 int read_message( int qid, long type, struct mymsgbuf *qbuf )
 {
         int     result, length;
-
-        /* The length is essentially the size of the structure minus sizeof(mtype) */
         length = sizeof(struct mymsgbuf) - sizeof(long);        
 
         if((result = msgrcv( qid, qbuf, length, type,  0)) == -1)
@@ -132,7 +125,7 @@ void *uncpl(int qid)
                 }
             }
         }
-        //printf("Yes1\n");
+        
     }
     pthread_exit(NULL);
 }
@@ -140,7 +133,7 @@ void *uncpl(int qid)
 void *rcvsend(int qid)
 {
     mymsgbuf msg;
-    while(1) //Receiving and and Sending Message to server
+    while(1)
     {
         int temp;
         if(temp=read_message(qid,3,&msg)==-1)
@@ -163,7 +156,7 @@ void *rcvsend(int qid)
                 }
             }
         }
-        //printf("Yes3\n");
+  
     }
     pthread_exit(NULL);
 }
